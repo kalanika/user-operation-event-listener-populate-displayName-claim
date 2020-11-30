@@ -16,8 +16,9 @@
  * under the License.
  */
 
-package org.wso2.carbon.custom.user.operation.event.listener;
+package org.wso2.carbon.custom.user.operation.event.listener.internal;
 
+import org.wso2.carbon.custom.user.operation.event.listener.CustomUserOperationEventListener;
 import org.wso2.carbon.user.core.service.RealmService;
 
 public class DataHolder {
@@ -40,7 +41,6 @@ public class DataHolder {
                     customUserOperationEventListener = new CustomUserOperationEventListener();
                 }
             }
-
         }
 
         return dataHolder;
