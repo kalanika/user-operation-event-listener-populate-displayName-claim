@@ -58,9 +58,10 @@ public class CustomUserOperationEventListener extends AbstractIdentityUserOperat
 
             if (StringUtils.isNotBlank(givenName) || StringUtils.isNotBlank(lastName)) {
 
-                claims.put(DISPLAY_NAME_CLAIM, StringUtils.stripToEmpty(givenName)
+                String displayName = StringUtils.stripToEmpty(givenName)
                         + ((StringUtils.isNotBlank(givenName) && StringUtils.isNotBlank(lastName)) ? " " : "")
-                        + StringUtils.stripToEmpty(lastName));
+                        + StringUtils.stripToEmpty(lastName);
+                claims.put(DISPLAY_NAME_CLAIM, displayName);
             } else if (StringUtils.isBlank(givenName) && StringUtils.isBlank(lastName) &&
                     StringUtils.isNotBlank(emailAddress)) {
                 claims.put(DISPLAY_NAME_CLAIM, emailAddress);
