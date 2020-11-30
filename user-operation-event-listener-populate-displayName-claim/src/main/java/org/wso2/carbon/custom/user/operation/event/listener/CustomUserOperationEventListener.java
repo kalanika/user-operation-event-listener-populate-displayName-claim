@@ -50,18 +50,20 @@ public class CustomUserOperationEventListener extends AbstractIdentityUserOperat
     public boolean doPreAddUser(String userName, Object credential, String[] roleList, Map<String, String> claims,
                                 String profile, UserStoreManager userStoreManager) throws UserStoreException {
 
-        if (StringUtils.isEmpty(claims.get(DISPLAY_NAME_CLAIM))) {
+        String givenName = claims.get(GIVEN_NAME_CLAIM);
+        String lastName = claims.get(LAST_NAME_CLAIM);
+        String emailAddress = claims.get(EMAIL_ADDRESS_CLAIM);
 
-            if (StringUtils.isNotEmpty(claims.get(GIVEN_NAME_CLAIM)) ||
-                    StringUtils.isNotEmpty(claims.get(LAST_NAME_CLAIM))) {
-                String givenName = StringUtils.isBlank(claims.get(GIVEN_NAME_CLAIM)) ? "" :
-                        claims.get(GIVEN_NAME_CLAIM) + " ";
-                String lastName = StringUtils.isBlank(claims.get(LAST_NAME_CLAIM)) ? "" : claims.get(LAST_NAME_CLAIM);
-                claims.put(DISPLAY_NAME_CLAIM, givenName + lastName);
-            } else if (StringUtils.isEmpty(claims.get(GIVEN_NAME_CLAIM)) &&
-                    StringUtils.isEmpty(claims.get(LAST_NAME_CLAIM)) &&
-                    StringUtils.isNotEmpty(claims.get(EMAIL_ADDRESS_CLAIM))) {
-                claims.put(DISPLAY_NAME_CLAIM, claims.get(EMAIL_ADDRESS_CLAIM));
+        if (StringUtils.isBlank(claims.get(DISPLAY_NAME_CLAIM))) {
+
+            if (StringUtils.isNotBlank(givenName) || StringUtils.isNotBlank(lastName)) {
+
+                claims.put(DISPLAY_NAME_CLAIM, StringUtils.stripToEmpty(givenName)
+                        + ((StringUtils.isNotBlank(givenName) && StringUtils.isNotBlank(lastName)) ? " " : "")
+                        + StringUtils.stripToEmpty(lastName));
+            } else if (StringUtils.isBlank(givenName) && StringUtils.isBlank(lastName) &&
+                    StringUtils.isNotBlank(emailAddress)) {
+                claims.put(DISPLAY_NAME_CLAIM, emailAddress);
             }
         }
 
