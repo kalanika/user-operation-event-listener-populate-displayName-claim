@@ -21,16 +21,27 @@ package org.wso2.carbon.custom.user.operation.event.listener.internal;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.osgi.service.component.ComponentContext;
-import org.wso2.carbon.custom.user.operation.event.listener.DataHolder;
 import org.wso2.carbon.user.core.listener.UserOperationEventListener;
 import org.wso2.carbon.user.core.service.RealmService;
+import org.osgi.service.component.annotations.Activate;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
 
 import java.util.Properties;
+
+/**
+ * @scr.component name="sample.user.operation.event.listener.dscomponent" immediate=true
+ * @scr.reference name="realm.service"
+ * interface="org.wso2.carbon.user.core.service.RealmService"cardinality="1..1"
+ * policy="dynamic" bind="setRealmService" unbind="unsetRealmService"
+ */
 
 public class CustomUserOperationEventListenerDSComponent {
 
     private static Log log = LogFactory.getLog(CustomUserOperationEventListenerDSComponent.class);
 
+    @Activate
     protected void activate(ComponentContext context) {
 
         //register the custom listener as an OSGI service.
@@ -48,6 +59,11 @@ public class CustomUserOperationEventListenerDSComponent {
         }
     }
 
+    @Reference(name = "realm.service",
+            service = org.wso2.carbon.user.core.service.RealmService.class,
+            cardinality = ReferenceCardinality.MANDATORY,
+            policy = ReferencePolicy.DYNAMIC,
+            unbind = "unsetRealmService")
     protected void setRealmService(RealmService realmService) {
 
         if (log.isDebugEnabled()) {

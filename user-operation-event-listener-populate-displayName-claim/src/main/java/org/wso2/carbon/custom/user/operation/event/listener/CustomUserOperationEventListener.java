@@ -18,46 +18,50 @@
 
 package org.wso2.carbon.custom.user.operation.event.listener;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.wso2.carbon.CarbonConstants;
-import org.wso2.carbon.custom.user.operation.event.listener.constants.Constants;
+import org.wso2.carbon.identity.core.AbstractIdentityUserOperationEventListener;
 import org.wso2.carbon.user.core.UserStoreException;
+import org.wso2.carbon.identity.core.util.IdentityCoreConstants;
 import org.wso2.carbon.user.core.UserStoreManager;
-import org.wso2.carbon.user.core.common.AbstractUserOperationEventListener;
 
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
 
-public class CustomUserOperationEventListener extends AbstractUserOperationEventListener {
+import static org.wso2.carbon.custom.user.operation.event.listener.constants.Constants.DISPLAY_NAME_CLAIM;
+import static org.wso2.carbon.custom.user.operation.event.listener.constants.Constants.EMAIL_ADDRESS_CLAIM;
+import static org.wso2.carbon.custom.user.operation.event.listener.constants.Constants.GIVEN_NAME_CLAIM;
+import static org.wso2.carbon.custom.user.operation.event.listener.constants.Constants.LAST_NAME_CLAIM;
 
-    private static final Log audit = CarbonConstants.AUDIT_LOG;
-    private static String AUDIT_MESSAGE = "Initiator : %s | Action : %s | Target : %s ";
-    private static Log log = LogFactory.getLog(CustomUserOperationEventListener.class);
+public class CustomUserOperationEventListener extends AbstractIdentityUserOperationEventListener {
 
     @Override
     public int getExecutionOrderId() {
 
-        //This listener should execute before the IdentityMgtEventListener
-        //Hence the number should be < 1357 (Execution order ID of IdentityMgtEventListener)
-        return 1356;
+        int orderId = getOrderId();
+        if (orderId != IdentityCoreConstants.EVENT_LISTENER_ORDER_ID) {
+            return orderId;
+        }
+        // This listener should be executed before all the other listeners.
+        // 0 and 1 are already reserved for audit loggers, hence using 2.
+        return 2;
     }
 
     @Override
     public boolean doPreAddUser(String userName, Object credential, String[] roleList, Map<String, String> claims,
                                 String profile, UserStoreManager userStoreManager) throws UserStoreException {
 
-        if (!StringUtils.isNotEmpty(claims.get(Constants.DISPLAY_NAME_CLAIM))) {
-            String lastName = claims.get(Constants.LAST_NAME_CLAIM);
-            String givenName = claims.get(Constants.GIVEN_NAME_CLAIM);
-            String emailAddress = claims.get(Constants.EMAIL_ADDRESS_CLAIM);
+        if (StringUtils.isEmpty(claims.get(DISPLAY_NAME_CLAIM))) {
 
-            if (StringUtils.isNotEmpty(lastName) && StringUtils.isNotEmpty(givenName)) {
-
-                claims.put(Constants.DISPLAY_NAME_CLAIM, givenName + " " + lastName);
-            } else {
-                claims.put(Constants.DISPLAY_NAME_CLAIM, emailAddress);
+            if (StringUtils.isNotEmpty(claims.get(GIVEN_NAME_CLAIM)) ||
+                    StringUtils.isNotEmpty(claims.get(LAST_NAME_CLAIM))) {
+                String givenName = StringUtils.isBlank(claims.get(GIVEN_NAME_CLAIM)) ? "" :
+                        claims.get(GIVEN_NAME_CLAIM) + " ";
+                String lastName = StringUtils.isBlank(claims.get(LAST_NAME_CLAIM)) ? "" : claims.get(LAST_NAME_CLAIM);
+                claims.put(DISPLAY_NAME_CLAIM, givenName + lastName);
+            } else if (StringUtils.isEmpty(claims.get(GIVEN_NAME_CLAIM)) &&
+                    StringUtils.isEmpty(claims.get(LAST_NAME_CLAIM)) &&
+                    StringUtils.isNotEmpty(claims.get(EMAIL_ADDRESS_CLAIM))) {
+                claims.put(DISPLAY_NAME_CLAIM, claims.get(EMAIL_ADDRESS_CLAIM));
             }
         }
 
